@@ -33,3 +33,10 @@ html, body {
     flex: 2;
     width: 66.66%;
 }
+.bar-plot{
+    display: grid;
+    justify-content: center;
+}
+#filtre{
+    margin-left: 50%;
+}
