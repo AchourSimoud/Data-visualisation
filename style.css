@@ -10,12 +10,12 @@ html, body {
 .container {
     display: flex;
     flex-direction: column;
-    height: 100%;
 }
 
 .row {
     display: flex;
     flex: 1;
+    height: 100%;
 }
 
 .column {
@@ -39,4 +39,26 @@ html, body {
 }
 #filtre{
     margin-left: 50%;
+}
+select {
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #333;
+ 
+select:hover {
+    border-color: #555;
+  }
+select:focus {
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  }
+select option {
+    background-color: #fff;
+    color: #333;
+  }
+
+circle :hover{
+    fill: red;
 }

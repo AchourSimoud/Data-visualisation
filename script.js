@@ -15,11 +15,11 @@ L.svg().addTo(map);
 
 // Charger le fichier contenant les lignes de tramway
 //var url = 'https://data.grandlyon.com/fr/datapusher/ws/timeseries/jcd_jcdecaux.historiquevelov/all.json?maxfeatures=-1&start=1&separator=';
+/*
 d3.csv("Data/historique_pistes.csv").then(function (historique) {
     d3.json("Data/stationvelov.json").then(function (bornes) {
 
         var station_features = bornes.features;
-        //console.log(historique);
         // Insertions des bornes à vélos
         d3.select("#map")
         .select("svg")
@@ -34,19 +34,56 @@ d3.csv("Data/historique_pistes.csv").then(function (historique) {
         .attr("stroke", "green")
         .attr("stroke-width", 3)
         .attr("fill-opacity", .4)
+        .on("mouseover", function () {
+            d3.select(this).attr("fill", "red");
+        });
         // mise à jour de la position des bornes 
         map.on("moveend", update)
 
     });
 });
+*/
 
+// Load the API data
+fetch("https://api.jcdecaux.com/vls/v1/stations?contract=Lyon&apiKey=2cb5e7d93cea69c9c015bb3a9bdd373ad43ed970")
+.then(response => response.json())
+.then(apiData => {
+    data = apiData; // Assign the API data to the global variable
+    // Print the data in the console
+    // You can access and use the data here
+    console.log(data);
+
+    // Insertions des bornes à vélos
+    d3.select("#map")
+        .select("svg")
+        .selectAll("myCircles")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("cx", function(d){ return map.latLngToLayerPoint([d.position.lat, d.position.lng]).x })
+        .attr("cy", function(d){ return map.latLngToLayerPoint([d.position.lat, d.position.lng]).y })
+        .attr("r", 5)
+        .style("fill", function(d) {
+            return d.available_bikes === 0 ? 'red' : 'green';
+        })
+        .style("stroke", function(d) {
+            return d.status === 'OPEN' ? 'green' : 'red';
+        })
+        .attr("stroke-width", 1)
+        .attr("fill-opacity", 1)
+        // mise à jour de la position des bornes 
+        map.on("moveend", update)
+})
+.catch(error => {
+    console.error("Error:", error);
+});
 var selected_graphe = d3.select("#filre");
 
 // Fonction d'adaptation du zoom
 function update() {
     d3.selectAll("circle")
-      .attr("cx", function(d){ return map.latLngToLayerPoint([d.geometry.coordinates[1], d.geometry.coordinates[0]]).x })
-      .attr("cy", function(d){ return map.latLngToLayerPoint([d.geometry.coordinates[1], d.geometry.coordinates[0]]).y })
+      .attr("cx", function(d){ return map.latLngToLayerPoint([d.position.lat, d.position.lng]).x })
+      .attr("cy", function(d){ return map.latLngToLayerPoint([d.position.lat, d.position.lng]).y })
 }
 
 // Afficher le nombre de pistes par année dans la div avec l'id "plots"
@@ -88,7 +125,10 @@ function update_graph(filtre, historique) {
             .attr('width', width + margin.left + margin.right)
             .attr('height', height + margin.top + margin.bottom)
             .append('g')
-            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+            .on("mouseover", function () {
+                d3.select(this).style("cursor", "pointer");
+            });
 
         // Échelle pour l'axe des x
         var x = d3.scaleBand()
@@ -134,7 +174,7 @@ function update_graph(filtre, historique) {
         // Définir les dimensions du graphique
         var margin = { top: 40, right: 20, bottom: 20, left: 150 },
         width = 600 - margin.left - margin.right,
-        height = 800 - margin.top - margin.bottom;
+        height = 600 - margin.top - margin.bottom;
 
         // Agréger les données par commune
         var data = d3.nest()
@@ -145,6 +185,11 @@ function update_graph(filtre, historique) {
         // Triez les données par ordre croissant en fonction de la clé
         data.sort(function (a, b) {
             return d3.ascending(a.value, b.value);
+        });
+
+         // Filtrer les données pour exclure les clés vides
+         data = data.filter(function(d) {
+            return d.key !== "";
         });
 
         // Affichage des barres plots
