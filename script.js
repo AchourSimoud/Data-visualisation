@@ -45,7 +45,7 @@ d3.csv("Data/historique_pistes.csv").then(function (historique) {
 */
 
 // Load the API data
-fetch("https://api.jcdecaux.com/vls/v1/stations?contract=Lyon&apiKey=2cb5e7d93cea69c9c015bb3a9bdd373ad43ed970")
+fetch("https://api.jcdecaux.com/vls/v3/stations?contract=Lyon&apiKey=2cb5e7d93cea69c9c015bb3a9bdd373ad43ed970")
 .then(response => response.json())
 .then(apiData => {
     data = apiData; // Assign the API data to the global variable
@@ -60,19 +60,42 @@ fetch("https://api.jcdecaux.com/vls/v1/stations?contract=Lyon&apiKey=2cb5e7d93ce
         .data(data)
         .enter()
         .append("circle")
-        .attr("cx", function(d){ return map.latLngToLayerPoint([d.position.lat, d.position.lng]).x })
-        .attr("cy", function(d){ return map.latLngToLayerPoint([d.position.lat, d.position.lng]).y })
+        .attr("cx", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).x })
+        .attr("cy", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).y })
         .attr("r", 5)
+        .style("pointer-events", "visible")
         .style("fill", function(d) {
-            return d.available_bikes === 0 ? 'red' : 'green';
+            return d.mainStands.availabilities.bikes === 0 ? 'red' : 'green';
         })
         .style("stroke", function(d) {
-            return d.status === 'OPEN' ? 'green' : 'red';
+            return d.status === 'OPEN' ? 'green' : 'black';
         })
         .attr("stroke-width", 1)
         .attr("fill-opacity", 1)
-        // mise à jour de la position des bornes 
-        map.on("moveend", update)
+        .on("click", function (d) {
+            console.log("Point clicked:", d.mainStands.availabilities.bikes);
+        })
+        ;
+
+    // Add text to the center of the circles
+    d3.select("#map")
+        .select("svg")
+        .selectAll("myText")
+        .data(data)
+        .enter()
+        .append("text")
+        .attr("x", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).x })
+        .attr("y", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).y })
+        .text(function(d) {
+            return d.mainStands.availabilities.bikes;
+        })
+        .attr("text-anchor", "middle")
+        .attr("alignment-baseline", "middle")
+        .style("fill", "white")
+        .style("font-size", "7px");
+
+    // mise à jour de la position des bornes 
+    map.on("moveend", update)
 })
 .catch(error => {
     console.error("Error:", error);
@@ -81,9 +104,12 @@ var selected_graphe = d3.select("#filre");
 
 // Fonction d'adaptation du zoom
 function update() {
-    d3.selectAll("circle")
-      .attr("cx", function(d){ return map.latLngToLayerPoint([d.position.lat, d.position.lng]).x })
-      .attr("cy", function(d){ return map.latLngToLayerPoint([d.position.lat, d.position.lng]).y })
+        d3.selectAll("circle")
+            .attr("cx", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).x })
+            .attr("cy", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).y });
+        d3.selectAll("text")
+            .attr("cx", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).x })
+            .attr("cy", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).y });
 }
 
 // Afficher le nombre de pistes par année dans la div avec l'id "plots"
