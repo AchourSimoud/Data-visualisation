@@ -1,8 +1,17 @@
 // Définir les coordonnées du centre de Lyon
-const lyonCoordinates = [45.75, 4.85];
+const coordinates = {
+    lyon: [45.75, 4.85],
+    nancy: [48.692054, 6.184417],
+    amiens: [49.894067, 2.295753],
+    toulouse: [43.604652, 1.444209],
+    cergypontoise: [49.036667, 2.076944],
+    creteil: [48.783333, 2.466667],
+    mulhouse: [47.75, 7.333333],
+    nantes: [47.218371, -1.553621]
+};
 
 // Initialiser la carte avec Leaflet
-var map = L.map("map").setView(lyonCoordinates, 13);
+var map = L.map("map").setView(coordinates.lyon, 13);
 
 // Utiliser la surcouche de OpenStreetMap
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -43,32 +52,49 @@ d3.csv("Data/historique_pistes.csv").then(function (historique) {
     });
 });
 */
+var switchButton = d3.select("#switchButton");
+var citySelect = document.getElementById("cities");
+var apiLink = "https://api.jcdecaux.com/vls/v3/stations?contract=Lyon";
 
+citySelect.addEventListener("change", function() {
+    // Get the selected value
+    var selectedCity = citySelect.value;
+    // Remove the symbol '-'
+    
+    // Update the API link
+    apiLink = "https://api.jcdecaux.com/vls/v3/stations?contract=" + selectedCity;
+    
+    // console.log("Selected city: " + selectedCity);
+    selectedCity = selectedCity.replace('-', '');
+    map.setView(coordinates[selectedCity.toLowerCase()], 13);
+
+    // Now you can use the updated API link in your fetch request
+    fetchData(apiLink);
+});
+
+fetchData(apiLink);
+
+function fetchData(apiLink) {
 // Load the API data
-fetch("https://api.jcdecaux.com/vls/v3/stations?contract=Lyon&apiKey=2cb5e7d93cea69c9c015bb3a9bdd373ad43ed970")
+fetch(apiLink+"&apiKey=2cb5e7d93cea69c9c015bb3a9bdd373ad43ed970")
 .then(response => response.json())
 .then(apiData => {
     data = apiData; // Assign the API data to the global variable
     // Print the data in the console
     // You can access and use the data here
-    console.log(data);
+    // console.log(data);
 
-    // Insertions des bornes à vélos
-    var sumOfAvailableBikes = data.reduce(function(total, d) {
-        return total + d.mainStands.availabilities.bikes;
-    }, 0);
-    console.log("Sum of available bikes:", sumOfAvailableBikes);
     // Calculate the sum of available mechanical bikes
     var sumOfMechanicalBikes = data.reduce(function(total, d) {
         return total + d.mainStands.availabilities.mechanicalBikes;
     }, 0);
-    console.log("Sum of available mechanical bikes:", sumOfMechanicalBikes);
 
     // Calculate the sum of available electrical bikes
     var sumOfElectricalBikes = data.reduce(function(total, d) {
         return total + d.mainStands.availabilities.electricalBikes;
     }, 0);
-    console.log("Sum of available electrical bikes:", sumOfElectricalBikes);
+
+    createBarChart(sumOfMechanicalBikes, sumOfElectricalBikes);
     d3.select("#map")
         .select("svg")
         .selectAll("myCircles")
@@ -80,7 +106,13 @@ fetch("https://api.jcdecaux.com/vls/v3/stations?contract=Lyon&apiKey=2cb5e7d93ce
         .attr("r", 5)
         .style("pointer-events", "visible")
         .style("fill", function(d) {
-            return d.mainStands.availabilities.bikes === 0 ? 'red' : 'green';
+            if (d.mainStands.availabilities.bikes === 0) {
+                return 'red';
+            } else if (d.mainStands.availabilities.bikes >= 1 && d.mainStands.availabilities.bikes <= 5) {
+                return 'orange';
+            } else {
+                return 'green';
+            }
         })
         .style("stroke", function(d) {
             return d.status === 'OPEN' ? 'green' : 'black';
@@ -133,19 +165,72 @@ fetch("https://api.jcdecaux.com/vls/v3/stations?contract=Lyon&apiKey=2cb5e7d93ce
 
     // mise à jour de la position des bornes 
     map.on("moveend", update)
+
+    switchButton.on("change", function() {
+        console.log("Switch button changed");
+        var showAvailable = switchButton.property("checked");
+
+        d3.selectAll(".station-text")
+            .text(function(d) {
+                return showAvailable ? d.mainStands.availabilities.stands : d.mainStands.availabilities.bikes;
+            });
+        d3.selectAll("circle")
+            .style("fill", function(d) {
+                if (showAvailable) {
+                    if (d.mainStands.availabilities.stands === 0) {
+                        return 'red';
+                    } else if (d.mainStands.availabilities.stands >= 1 && d.mainStands.availabilities.stands <= 5) {
+                        return 'orange';
+                    } else {
+                        return 'green';
+                    }
+                } else {
+                    if (d.mainStands.availabilities.bikes === 0) {
+                        return 'red';
+                    } else if (d.mainStands.availabilities.bikes >= 1 && d.mainStands.availabilities.bikes <= 5) {
+                        return 'orange';
+                    } else {
+                        return 'green';
+                    }
+                }
+            })
+            .style("stroke", function(d) {
+                return d.status === 'OPEN' ? 'green' : 'black';
+            });
+    })
 })
 .catch(error => {
     console.error("Error:", error);
 });
+}
 var selected_graphe = d3.select("#filre");
 
 // Fonction d'adaptation du zoom
 function update() {
+    var zoomLevel = map.getZoom(); // Get the current zoom level
+    console.log("Zoom level: " + zoomLevel);
+    
     d3.selectAll("circle")
+        .attr("r", function(d) {
+            // Adjust the circle size based on the zoom level
+            if (zoomLevel >= 14) {
+                return zoomLevel-8*0.5;
+            } else {
+                return 5;
+            }
+        })
         .attr("cx", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).x })
         .attr("cy", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).y });
     
     d3.selectAll(".station-text")
+    .style("font-size", function(d) {
+        // Adjust the circle size based on the zoom level
+        if (zoomLevel >= 14) {
+            return zoomLevel-8*0.5+"px";
+        } else {
+            return 5+"px";
+        }
+    })
         .attr("x", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).x })
         .attr("y", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).y });
 }
@@ -354,4 +439,57 @@ function showPieChart(mechanicalBikes, electricalBikes) {
                 .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
                 .attr("text-anchor", "middle")
                 .text(function(d) { return d.data.label + " (" + d.data.value + ")"; });
+}
+
+
+function createBarChart(value1, value2) {
+    // Nettoyer le contenu existant dans la balise avec l'id "barChart"
+    d3.select("#barChart").html("");
+// Calculer le pourcentage de chaque valeur
+var percentage1 = Math.round((value1 / (value1 + value2)) * 100); 
+var percentage2 = Math.round((value2 / (value1 + value2)) * 100);
+
+// Définir les données pour le graphique à barres
+var data = [
+    { label: "⚙️", percentage: percentage1, color: 'lightgrey' },
+    { label: "⚡", percentage: percentage2, color: 'lightyellow' }
+];
+
+// Définir la largeur et la hauteur du graphique à barres
+var width = 300;
+var height = 50;
+
+// Créer l'échelle pour l'axe des x
+var xScale = d3.scaleLinear()
+    .domain([0, 100])
+    .range([0, width]);
+
+// Sélectionner la balise div avec l'id "barChart"
+var chart = d3.select("#barChart")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+// Ajouter des rectangles pour chaque barre
+chart.selectAll("rect")
+    .data(data)
+    .enter().append("rect")
+    .attr("width", function (d) { return xScale(d.percentage); })
+    .attr("height", height)
+    .attr("y", 0) // La position y est fixée à 0
+    .attr("x", function (d, i) {
+        // La position x de la deuxième barre commence là où se termine la première barre
+        return i === 0 ? 0 : xScale(percentage1);
+    })
+    .attr("fill", function (d) { return d.color; });
+
+// Ajouter des étiquettes pour chaque barre
+chart.selectAll("text")
+    .data(data)
+    .enter().append("text")
+    .attr("x", function (d, i) { return i === 0 ? 50 : 200; })
+    .attr("y", height / 2)
+    .text(function (d) { return d.label + " (" + d3.format(".0f")(d.percentage) + "%)"; })
+    .attr("fill", "white")
+    .attr("fill", "black");
 }
