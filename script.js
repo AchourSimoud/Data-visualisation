@@ -54,6 +54,21 @@ fetch("https://api.jcdecaux.com/vls/v3/stations?contract=Lyon&apiKey=2cb5e7d93ce
     console.log(data);
 
     // Insertions des bornes à vélos
+    var sumOfAvailableBikes = data.reduce(function(total, d) {
+        return total + d.mainStands.availabilities.bikes;
+    }, 0);
+    console.log("Sum of available bikes:", sumOfAvailableBikes);
+    // Calculate the sum of available mechanical bikes
+    var sumOfMechanicalBikes = data.reduce(function(total, d) {
+        return total + d.mainStands.availabilities.mechanicalBikes;
+    }, 0);
+    console.log("Sum of available mechanical bikes:", sumOfMechanicalBikes);
+
+    // Calculate the sum of available electrical bikes
+    var sumOfElectricalBikes = data.reduce(function(total, d) {
+        return total + d.mainStands.availabilities.electricalBikes;
+    }, 0);
+    console.log("Sum of available electrical bikes:", sumOfElectricalBikes);
     d3.select("#map")
         .select("svg")
         .selectAll("myCircles")
@@ -85,6 +100,17 @@ fetch("https://api.jcdecaux.com/vls/v3/stations?contract=Lyon&apiKey=2cb5e7d93ce
                 + "<span style='font-size: 25px;'>" + d.mainStands.availabilities.electricalBikes + "</span>"
                 + "<br><img width=\"40\" height=\"40\" src=\"https://img.icons8.com/3d-fluency/94/bike-parking.png\" alt=\"bike-parking\"/>"
                 + "<span style='font-size: 25px;'>" + d.mainStands.capacity + "</span>"
+                + "<br><br><strong><span style='font-size: 15px;'>Statut de la station : </span></strong><br><span style='font-weight: bold; color: red;'>" + d.status + "</span>"
+
+            
+            // Calculate the ratio of mechanicalBikes and electricalBikes
+            var mechanicalBikes = d.mainStands.availabilities.mechanicalBikes;
+            var electricalBikes = d.mainStands.availabilities.electricalBikes;
+            var totalBikes = mechanicalBikes + electricalBikes;
+            
+            if (mechanicalBikes !== 0 || electricalBikes !== 0) {
+                showPieChart(mechanicalBikes, electricalBikes)
+            }
         });
         
     // Add text to the center of the circles
@@ -94,6 +120,7 @@ fetch("https://api.jcdecaux.com/vls/v3/stations?contract=Lyon&apiKey=2cb5e7d93ce
         .data(data)
         .enter()
         .append("text")
+        .attr("class", "station-text")
         .attr("x", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).x })
         .attr("y", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).y })
         .text(function(d) {
@@ -114,12 +141,13 @@ var selected_graphe = d3.select("#filre");
 
 // Fonction d'adaptation du zoom
 function update() {
-        d3.selectAll("circle")
-            .attr("cx", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).x })
-            .attr("cy", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).y });
-        d3.selectAll("text")
-            .attr("cx", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).x })
-            .attr("cy", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).y });
+    d3.selectAll("circle")
+        .attr("cx", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).x })
+        .attr("cy", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).y });
+    
+    d3.selectAll(".station-text")
+        .attr("x", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).x })
+        .attr("y", function(d){ return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).y });
 }
 
 // Afficher le nombre de pistes par année dans la div avec l'id "plots"
@@ -276,4 +304,54 @@ function update_graph(filtre, historique) {
             .style('font-size', '16px')
             .text('Graphique de construction des pistes cyclables à Lyon');
     }
+
+    
+}
+
+function showPieChart(mechanicalBikes, electricalBikes) {
+    document.getElementById("affichage").innerHTML += "<br><br><strong><span style='font-size: 15px;'>Ratio type de vélos disponibles : </span></strong><br><br><div id='pieChart'></div>";
+            // Create the pie chart data
+            var pieData = [
+                { label: "⚙️", value: mechanicalBikes },
+                { label: "⚡", value: electricalBikes }
+            ];
+
+            // Set up the pie chart dimensions
+            var width = 150;
+            var height = 150;
+            var radius = Math.min(width, height) / 2;
+
+            // Create the pie chart SVG element
+            var svg = d3.select("#pieChart")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+            // Define the pie chart layout
+            var pie = d3.pie()
+                .value(function(d) { return d.value; });
+
+            // Define the arc for each slice of the pie chart
+            var arc = d3.arc()
+                .innerRadius(0)
+                .outerRadius(radius);
+
+            // Create the pie chart slices
+            var slices = svg.selectAll("slice")
+                .data(pie(pieData))
+                .enter()
+                .append("g");
+
+            // Add the pie chart slices
+            slices.append("path")
+                .attr("d", arc)
+                .attr("fill", function(d) { return d.data.label === "⚙️" ? "lightgrey" : "lightyellow"; });
+
+            // Add the pie chart labels
+            slices.append("text")
+                .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+                .attr("text-anchor", "middle")
+                .text(function(d) { return d.data.label + " (" + d.data.value + ")"; });
 }
