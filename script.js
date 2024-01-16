@@ -73,10 +73,20 @@ fetch("https://api.jcdecaux.com/vls/v3/stations?contract=Lyon&apiKey=2cb5e7d93ce
         .attr("stroke-width", 1)
         .attr("fill-opacity", 1)
         .on("click", function (d) {
-            console.log("Point clicked:", d.mainStands.availabilities.bikes);
-        })
-        ;
-
+            console.log("here",d);
+            document.getElementById("affichage").innerHTML = "<br><strong><span style='font-size: 20px;'>Nom de la station: </span></strong><br><span style='font-weight: bold; color: red;'>" + d.name + "</span>"
+                + "<br><br><img width=\"30\" height=\"30\" src=\"https://img.icons8.com/3d-fluency/94/map-pin.png\" alt=\"map-pin\"/>"
+                + "<span style='font-size: 15px;'>" + d.address + "</span>"
+                + "<br><br><strong><span style='font-size: 15px;'>Nombre de vélos disponible : </span></strong><br><span style='font-weight: bold; color: red;'>" + d.mainStands.availabilities.bikes + "</span>"
+                + "<br><br><strong><span style='font-size: 15px;'>Nombre d'emplacements libres :  </span></strong><br><span style='font-weight: bold; color: red;'>" + d.mainStands.availabilities.stands + "</span>"
+                + "<br><br><img width=\"40\" height=\"40\" src=\"https://img.icons8.com/3d-fluency/94/bicycle.png\" alt=\"bicycle\"/>" 
+                + "<span style='font-size: 25px;'>" + d.mainStands.availabilities.mechanicalBikes + "</span>"
+                + "<br><img width=\"40\" height=\"40\" src=\"https://img.icons8.com/3d-fluency/94/electric-bike.png\" alt=\"electric-bike\"/>"
+                + "<span style='font-size: 25px;'>" + d.mainStands.availabilities.electricalBikes + "</span>"
+                + "<br><img width=\"40\" height=\"40\" src=\"https://img.icons8.com/3d-fluency/94/bike-parking.png\" alt=\"bike-parking\"/>"
+                + "<span style='font-size: 25px;'>" + d.mainStands.capacity + "</span>"
+        });
+        
     // Add text to the center of the circles
     d3.select("#map")
         .select("svg")
