@@ -20,76 +20,44 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 L.svg().addTo(map);
 
-
-
-// Charger le fichier contenant les lignes de tramway
-//var url = 'https://data.grandlyon.com/fr/datapusher/ws/timeseries/jcd_jcdecaux.historiquevelov/all.json?maxfeatures=-1&start=1&separator=';
-/*
-d3.csv("Data/historique_pistes.csv").then(function (historique) {
-    d3.json("Data/stationvelov.json").then(function (bornes) {
-
-        var station_features = bornes.features;
-        // Insertions des bornes à vélos
-        d3.select("#map")
-        .select("svg")
-        .selectAll("myCircles")
-        .data(station_features)
-        .enter()
-        .append("circle")
-        .attr("cx", function(d){ return map.latLngToLayerPoint([d.geometry.coordinates[1], d.geometry.coordinates[0]]).x })
-        .attr("cy", function(d){ return map.latLngToLayerPoint([d.geometry.coordinates[1], d.geometry.coordinates[0]]).y })
-        .attr("r", 5)
-        .style("fill", "green")
-        .attr("stroke", "green")
-        .attr("stroke-width", 3)
-        .attr("fill-opacity", .4)
-        .on("mouseover", function () {
-            d3.select(this).attr("fill", "red");
-        });
-        // mise à jour de la position des bornes 
-        map.on("moveend", update)
-
-    });
-});
-*/
 var switchButton = d3.select("#switchButton");
 var citySelect = document.getElementById("cities");
 var apiLink = "https://api.jcdecaux.com/vls/v3/stations?contract=Lyon";
 
 citySelect.addEventListener("change", function () {
-    // Get the selected value
+    // Obtenir la valeur sélectionnée
     var selectedCity = citySelect.value;
-    // Remove the symbol '-'
+    // Supprimer le symbole '-'
 
-    // Update the API link
+    // Mettre à jour le lien de l'API
     apiLink = "https://api.jcdecaux.com/vls/v3/stations?contract=" + selectedCity;
 
-    // console.log("Selected city: " + selectedCity);
+    // console.log("Ville sélectionnée : " + selectedCity);
     selectedCity = selectedCity.replace('-', '');
     map.setView(coordinates[selectedCity.toLowerCase()], 13);
 
-    // Now you can use the updated API link in your fetch request
+    // Maintenant, vous pouvez utiliser le lien de l'API mis à jour dans votre requête fetch
     fetchData(apiLink);
 });
 
 fetchData(apiLink);
 
 function fetchData(apiLink) {
-    // Load the API data
+    // Charger les données de l'API
     fetch(apiLink + "&apiKey=2cb5e7d93cea69c9c015bb3a9bdd373ad43ed970")
         .then(response => response.json())
         .then(apiData => {
-            data = apiData; // Assign the API data to the global variable
-            // Print the data in the console
-            // You can access and use the data here
+            data = apiData; // Assigner les données de l'API à la variable globale
+            // Afficher les données dans la console
+            // Vous pouvez accéder et utiliser les données ici
             // console.log(data);
 
-            // Calculate the sum of available mechanical bikes
+            // Calculer la somme des vélos mécaniques disponibles
             var sumOfMechanicalBikes = data.reduce(function (total, d) {
                 return total + d.mainStands.availabilities.mechanicalBikes;
             }, 0);
 
-            // Calculate the sum of available electrical bikes
+            // Calculer la somme des vélos électriques disponibles
             var sumOfElectricalBikes = data.reduce(function (total, d) {
                 return total + d.mainStands.availabilities.electricalBikes;
             }, 0);
@@ -124,28 +92,22 @@ function fetchData(apiLink) {
                     document.getElementById("affichage").innerHTML = "<br><strong><span style='font-size: 20px;'>Nom de la station: </span></strong><br><span style='font-weight: bold; color: red;'>" + d.name + "</span>"
                         + "<br><br><img width=\"30\" height=\"30\" src=\"https://img.icons8.com/3d-fluency/94/map-pin.png\" alt=\"map-pin\"/>"
                         + "<span style='font-size: 15px;'>" + d.address + "</span>"
-                        + "<br><br><strong><span style='font-size: 15px;'>Nombre de vélos disponible : </span></strong><br><span style='font-weight: bold; color: red;'>" + d.mainStands.availabilities.bikes + "</span>"
-                        + "<br><br><strong><span style='font-size: 15px;'>Nombre d'emplacements libres :  </span></strong><br><span style='font-weight: bold; color: red;'>" + d.mainStands.availabilities.stands + "</span>"
-                        + "<br><br><img width=\"40\" height=\"40\" src=\"https://img.icons8.com/3d-fluency/94/bicycle.png\" alt=\"bicycle\"/>"
-                        + "<span style='font-size: 25px;'>" + d.mainStands.availabilities.mechanicalBikes + "</span>"
-                        + "<br><img width=\"40\" height=\"40\" src=\"https://img.icons8.com/3d-fluency/94/electric-bike.png\" alt=\"electric-bike\"/>"
-                        + "<span style='font-size: 25px;'>" + d.mainStands.availabilities.electricalBikes + "</span>"
-                        + "<br><img width=\"40\" height=\"40\" src=\"https://img.icons8.com/3d-fluency/94/bike-parking.png\" alt=\"bike-parking\"/>"
-                        + "<span style='font-size: 25px;'>" + d.mainStands.capacity + "</span>"
                         + "<br><br><strong><span style='font-size: 15px;'>Statut de la station : </span></strong><br><span style='font-weight: bold; color: red;'>" + d.status + "</span>"
 
 
-                    // Calculate the ratio of mechanicalBikes and electricalBikes
+                    // Calculer le ratio de vélos mécaniques et de vélos électriques
                     var mechanicalBikes = d.mainStands.availabilities.mechanicalBikes;
                     var electricalBikes = d.mainStands.availabilities.electricalBikes;
+                    var stands = d.mainStands.availabilities.stands;
+                    var capacity = d.mainStands.capacity;
                     var totalBikes = mechanicalBikes + electricalBikes;
 
                     if (mechanicalBikes !== 0 || electricalBikes !== 0) {
-                        showPieChart(mechanicalBikes, electricalBikes)
+                        showBarChart(mechanicalBikes, electricalBikes, stands, capacity);
                     }
                 });
 
-            // Add text to the center of the circles
+            // Ajouter du texte au centre des cercles
             d3.select("#map")
                 .select("svg")
                 .selectAll("myText")
@@ -207,12 +169,12 @@ var selected_graphe = d3.select("#filre");
 
 // Fonction d'adaptation du zoom
 function update() {
-    var zoomLevel = map.getZoom(); // Get the current zoom level
-    console.log("Zoom level: " + zoomLevel);
+    var zoomLevel = map.getZoom(); // Obtenir le niveau de zoom actuel
+    console.log("Niveau de zoom : " + zoomLevel);
 
     d3.selectAll("circle")
         .attr("r", function (d) {
-            // Adjust the circle size based on the zoom level
+            // Ajuster la taille du cercle en fonction du niveau de zoom
             if (zoomLevel >= 14) {
                 return zoomLevel - 8 * 0.5;
             } else {
@@ -224,7 +186,7 @@ function update() {
 
     d3.selectAll(".station-text")
         .style("font-size", function (d) {
-            // Adjust the circle size based on the zoom level
+            // Ajuster la taille de la police en fonction du niveau de zoom
             if (zoomLevel >= 14) {
                 return zoomLevel - 8 * 0.5 + "px";
             } else {
@@ -393,52 +355,146 @@ function update_graph(filtre, historique) {
 
 }
 
-function showPieChart(mechanicalBikes, electricalBikes) {
-    document.getElementById("affichage").innerHTML += "<br><br><strong><span style='font-size: 15px;'>Ratio type de vélos disponibles : </span></strong><br><br><div id='pieChart'></div>";
-    // Create the pie chart data
-    var pieData = [
-        { label: "⚙️", value: mechanicalBikes },
-        { label: "⚡", value: electricalBikes }
-    ];
+function showBarChart(mechanicalBikes, electricalBikes, stands, capacity) {
+    document.getElementById("affichage").innerHTML += "<br><br><strong><span style='font-size: 15px;'>Ratio type de vélos disponibles : </span></strong><br><div id='barChart'></div>";
 
-    // Set up the pie chart dimensions
-    var width = 150;
-    var height = 150;
-    var radius = Math.min(width, height) / 2;
+    // Définir les dimensions du graphique à barres
+    var width = 300; // Ajustez la largeur selon vos besoins
+    var height = 250; // Ajustez la hauteur selon vos besoins
+    var iconSize = 40; // Ajustez la taille de l'icône selon vos besoins
+    var marginTop = 20; // Ajustez la marge supérieure selon vos besoins
+    var marginBottom = 40; // Ajustez la marge inférieure pour les étiquettes
 
-    // Create the pie chart SVG element
-    var svg = d3.select("#pieChart")
+    // Créer l'élément SVG du graphique à barres
+    var svg = d3.select("#barChart")
         .append("svg")
         .attr("width", width)
-        .attr("height", height)
-        .append("g")
-        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+        .attr("height", height + iconSize + marginTop + marginBottom); // Augmenter la hauteur pour les étiquettes
 
-    // Define the pie chart layout
-    var pie = d3.pie()
-        .value(function (d) { return d.value; });
+    // Appliquer une marge en haut et en bas de l'élément SVG
+    svg.append("g")
+        .attr("transform", "translate(0," + marginTop + ")");
 
-    // Define the arc for each slice of the pie chart
-    var arc = d3.arc()
-        .innerRadius(0)
-        .outerRadius(radius);
+    // Definir les données pour le graphique à barres
+    var data = [
+        { label: "Capacité", icon: "https://img.icons8.com/3d-fluency/94/parking.png", value: capacity },
+        { label: "Libres", icon: "https://img.icons8.com/3d-fluency/94/bike-parking.png", value: stands },
+        { label: "Mechaniques", icon: "https://img.icons8.com/3d-fluency/94/bicycle.png", value: mechanicalBikes },
+        { label: "Electriques", icon: "https://img.icons8.com/3d-fluency/94/electric-bike.png", value: electricalBikes }
+    ];
 
-    // Create the pie chart slices
-    var slices = svg.selectAll("slice")
-        .data(pie(pieData))
+    // Definir l'échelle pour les couleurs
+    var colorScale = d3.scaleOrdinal()
+        .domain(data.map(function (d) { return d.label; }))
+        .range(["#7fc97f", "#beaed4", "#fdc086", "#ffff99"]);
+
+    // Définir l'échelle pour l'axe des x
+    var xScale = d3.scaleBand()
+        .domain(data.map(function (d) { return d.label; }))
+        .range([0, width])
+        .padding(0.2);
+
+    var yScale = d3.scaleLinear()
+        .domain([0, d3.max(data, function (d) { return d.value; }) + 5])
+        .range([height, 0]);
+
+    // Créer les dégradés pour les barres
+    var gradient = svg.append("defs")
+        .selectAll("linearGradient")
+        .data(data)
+        .enter().append("linearGradient")
+        .attr("id", function (d) { return "gradient-" + d.label.replace(/\s+/g, ''); })
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", 0)
+        .attr("y1", yScale(0))
+        .attr("x2", 0)
+        .attr("y2", function (d) { return yScale(d.value); });
+
+    gradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", function (d) { return colorScale(d.label); });
+
+    gradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", function (d) { return d3.rgb(colorScale(d.label)).darker(); });
+
+    // Créer les barres
+    svg.selectAll("rect")
+        .data(data)
         .enter()
-        .append("g");
+        .append("rect")
+        .attr("x", function (d) { return xScale(d.label); })
+        .attr("y", height) // Parametrer la position verticale à la hauteur initiale
+        .attr("width", xScale.bandwidth())
+        .attr("height", 0) // Parametrer la hauteur initiale à 0
+        .attr("fill", function (d) {
+            return "url(#gradient-" + d.label.replace(/\s+/g, '') + ")";
+        })
+        .attr("opacity", 0.8)
+        .on("mouseover", function (d) {
+            d3.select(this).transition()
+                .duration(200)
+                .attr("opacity", 1);
+        })
+        .on("mouseout", function (d) {
+            d3.select(this).transition()
+                .duration(200)
+                .attr("opacity", 0.8);
+        })
+        .transition() // Ajouter une transition
+        .delay(function (d, i) { return i * 200; }) // Délai de chargement de chaque barre
+        .attr("y", function (d) { return yScale(d.value); })
+        .attr("height", function (d) { return height - yScale(d.value); });
 
-    // Add the pie chart slices
-    slices.append("path")
-        .attr("d", arc)
-        .attr("fill", function (d) { return d.data.label === "⚙️" ? "lightgrey" : "lightyellow"; });
 
-    // Add the pie chart labels
-    slices.append("text")
-        .attr("transform", function (d) { return "translate(" + arc.centroid(d) + ")"; })
+    // Ajouter des étiquettes pour chaque barre
+    svg.selectAll("text.label")
+        .data(data)
+        .enter()
+        .append("text")
+        .attr("class", "label")
+        .text(function (d) { return d.value; })
+        .attr("x", function (d) { return xScale(d.label) + xScale.bandwidth() / 2; })
+        .attr("y", function (d) { return height + marginTop + 20; }) // Ajuster la position verticale
         .attr("text-anchor", "middle")
-        .text(function (d) { return d.data.label + " (" + d.data.value + ")"; });
+        .attr("font-size", "12px")
+        .attr("fill", "black");
+
+    // Ajouter des icônes sous les barres
+    svg.selectAll("image")
+        .data(data)
+        .enter()
+        .append("image")
+        .attr("x", function (d) { return xScale(d.label) + (xScale.bandwidth() - iconSize) / 2; })
+        .attr("y", function (d) { return height + marginTop + 40; }) // Ajuster la position verticale
+        .attr("width", iconSize)
+        .attr("height", iconSize)
+        .attr("xlink:href", function (d) { return d.icon; })
+        .each(function (d) {
+            // ajouter le text sous les icones
+            svg.append("text")
+                .text(d.label)
+                .attr("x", xScale(d.label) + (xScale.bandwidth() - iconSize) / 2 + iconSize / 2)
+                .attr("y", height + iconSize + 15)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "9px")
+                .attr("fill", "black");
+        })
+        .on("mouseover", function (d) {
+            d3.select(this).transition()
+                .duration(200)
+                .attr("opacity", 1);
+        })
+        .on("mouseout", function (d) {
+            d3.select(this).transition()
+                .duration(200)
+                .attr("opacity", 0.8);
+        });
+
+    // Ajouter des tooltips
+    svg.selectAll("rect")
+        .append("title")
+        .text(function (d) { return d.label + " Loading: " + d.value; });
 }
 
 
