@@ -35,8 +35,10 @@ citySelect.addEventListener("change", function () {
     // Obtenir la valeur sélectionnée
     var selectedCity = citySelect.value;
     // Supprimer le symbole '-'
-    if (citySelect.value != "Lyon") {
+    if (citySelect.value != "lyon") {
         document.getElementById("plot-section").style.display = "none";
+    }else{
+        document.getElementById("plot-section").style.display = "block";
     }
     // Mettre à jour le lien de l'API
     apiLink = "https://api.jcdecaux.com/vls/v3/stations?contract=" + selectedCity;
