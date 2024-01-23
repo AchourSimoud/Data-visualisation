@@ -365,7 +365,7 @@ d3.csv("Data/historique_pistes.csv").then(function (historique) {
                     "px"
                 )
                 // on recupere le nom de l'etat et la valeur
-                .html(d.key + " " + d.value);
+                .html(d.key + ": " + d.value);
         })
           .on("mouseout", function () {
             // on cache le toolip
