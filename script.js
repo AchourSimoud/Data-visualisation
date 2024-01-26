@@ -386,7 +386,7 @@ d3.csv("Data/historique_pistes.csv").then(function (historique) {
 });
 
 function showBarChart(mechanicalBikes, electricalBikes, stands, capacity) {
-    document.getElementById("affichage").innerHTML += "<br><br><strong><span style='font-size: 15px;'>Ratio type de vélos disponibles : </span></strong><br><div id='barChart'></div>";
+    document.getElementById("affichage").innerHTML += "<br><br><strong><span style='font-size: 15px;'>Ratio type de vélos disponibles : </span></strong><br><div id='barChartPlaces'></div>";
 
     // Définir les dimensions du graphique à barres
     var width = 300; // Ajustez la largeur selon vos besoins
@@ -396,7 +396,7 @@ function showBarChart(mechanicalBikes, electricalBikes, stands, capacity) {
     var marginBottom = 40; // Ajustez la marge inférieure pour les étiquettes
 
     // Créer l'élément SVG du graphique à barres
-    var svg = d3.select("#barChart")
+    var svg = d3.select("#barChartPlaces")
         .append("svg")
         .attr("width", width)
         .attr("height", height + iconSize + marginTop + marginBottom); // Augmenter la hauteur pour les étiquettes
