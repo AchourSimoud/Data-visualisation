@@ -37,13 +37,12 @@ citySelect.addEventListener("change", function () {
     // Supprimer le symbole '-'
     if (citySelect.value != "lyon") {
         document.getElementById("plot-section").style.display = "none";
-    }else{
+    } else {
         document.getElementById("plot-section").style.display = "block";
     }
     // Mettre à jour le lien de l'API
     apiLink = "https://api.jcdecaux.com/vls/v3/stations?contract=" + selectedCity;
 
-    // console.log("Ville sélectionnée : " + selectedCity);
     selectedCity = selectedCity.replace('-', '');
     map.setView(coordinates[selectedCity.toLowerCase()], 13);
 
@@ -59,9 +58,6 @@ function fetchData(apiLink) {
         .then(response => response.json())
         .then(apiData => {
             data = apiData; // Assigner les données de l'API à la variable globale
-            // Afficher les données dans la console
-            // Vous pouvez accéder et utiliser les données ici
-            // console.log(data);
 
             // Calculer la somme des vélos mécaniques disponibles
             var sumOfMechanicalBikes = data.reduce(function (total, d) {
@@ -99,12 +95,10 @@ function fetchData(apiLink) {
                 .attr("stroke-width", 1)
                 .attr("fill-opacity", 1)
                 .on("click", function (d) {
-                    console.log("here", d);
                     document.getElementById("affichage").innerHTML = "<br><strong><span style='font-size: 20px;'>Nom de la station: </span></strong><br><span style='font-weight: bold; color: red;'>" + d.name + "</span>"
                         + "<br><br><img width=\"30\" height=\"30\" src=\"https://img.icons8.com/3d-fluency/94/map-pin.png\" alt=\"map-pin\"/>"
                         + "<span style='font-size: 15px;'>" + d.address + "</span>"
                         + "<br><br><strong><span style='font-size: 15px;'>Statut de la station : </span></strong><br><span style='font-weight: bold; color: red;'>" + d.status + "</span>"
-
 
                     // Calculer le ratio de vélos mécaniques et de vélos électriques
                     var mechanicalBikes = d.mainStands.availabilities.mechanicalBikes;
@@ -140,7 +134,6 @@ function fetchData(apiLink) {
             map.on("moveend", update)
 
             switchButton.on("change", function () {
-                console.log("Switch button changed");
                 var showAvailable = switchButton.property("checked");
 
                 d3.selectAll(".station-text")
@@ -181,7 +174,6 @@ var selected_graphe = d3.select("#filre");
 // Fonction d'adaptation du zoom
 function update() {
     var zoomLevel = map.getZoom(); // Obtenir le niveau de zoom actuel
-    console.log("Niveau de zoom : " + zoomLevel);
 
     d3.selectAll("circle")
         .attr("r", function (d) {
@@ -208,18 +200,18 @@ function update() {
         .attr("y", function (d) { return map.latLngToLayerPoint([d.position.latitude, d.position.longitude]).y });
 }
 var tooltip = d3
-.select("#barChart2")
-.append("div")
-.attr("class", " tooltip");
+    .select("#barChart2")
+    .append("div")
+    .attr("class", " tooltip");
 
 // Afficher le nombre de pistes par année dans la div avec l'id "plots"
 d3.csv("Data/historique_pistes.csv").then(function (historique) {
-  
-     // Agréger les données par année
-     var data = d3.nest()
-     .key(function (d) { return d.anneelivraison; })
-     .rollup(function (v) { return v.length; })
-     .entries(historique);
+
+    // Agréger les données par année
+    var data = d3.nest()
+        .key(function (d) { return d.anneelivraison; })
+        .rollup(function (v) { return v.length; })
+        .entries(historique);
 
     // Triez les données par ordre croissant en fonction de la clé
     data.sort(function (a, b) {
@@ -236,7 +228,7 @@ d3.csv("Data/historique_pistes.csv").then(function (historique) {
         .attr('height', height + margin.top + margin.bottom)
         .append('g')
         .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-       
+
 
     // Échelle pour l'axe des x
     var x = d3.scaleBand()
@@ -267,24 +259,24 @@ d3.csv("Data/historique_pistes.csv").then(function (historique) {
             var mousePosition = [d3.event.pageX, d3.event.pageY];
             // on affiche le toolip
             tooltip
-              .classed("hidden", false)
-              // on positionne le tooltip en fonction
-              // de la position de la souris
-              .attr(
-                "style",
-                "left:" +
-                  (mousePosition[0] + 15) +
-                  "px; top:" +
-                  (mousePosition[1] - 35) +
-                  "px"
-              )
-              // on recupere le nom de l'etat
-              .html(d.value);
-          })
-          .on("mouseout", function () {
+                .classed("hidden", false)
+                // on positionne le tooltip en fonction
+                // de la position de la souris
+                .attr(
+                    "style",
+                    "left:" +
+                    (mousePosition[0] + 15) +
+                    "px; top:" +
+                    (mousePosition[1] - 35) +
+                    "px"
+                )
+                // on recupere le nom de l'etat
+                .html(d.value);
+        })
+        .on("mouseout", function () {
             // on cache le toolip
             tooltip.classed("hidden", true);
-          });
+        });
 
     // Ajouter l'axe des x
     svg.append('g')
@@ -303,31 +295,29 @@ d3.csv("Data/historique_pistes.csv").then(function (historique) {
         .style('font-size', '16px')
         .text('Graphique de construction des pistes cyclables à Lyon');
 
-
-// Agréger les données par commune
+    // Agréger les données par commune
     var data = d3.nest()
         .key(function (d) { return d.commune1; })
         .rollup(function (v) { return v.length; })
         .entries(historique);
 
-// Triez les données par ordre croissant en fonction de la clé
+    // Triez les données par ordre croissant en fonction de la clé
     data.sort(function (a, b) {
         return d3.ascending(a.value, b.value);
     });
 
-// Filtrer les données pour exclure les clés vides
+    // Filtrer les données pour exclure les clés vides
     data = data.filter(function (d) {
         return d.key !== "";
     });
 
-// Affichage des barres plots
+    // Affichage des barres plots
     var svg = d3.select('#barChart2')
         .append('svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
         .append('g')
         .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-        
 
     // Échelle pour l'axe des x
     var x = d3.scaleLinear()
@@ -371,30 +361,28 @@ d3.csv("Data/historique_pistes.csv").then(function (historique) {
                 // on recupere le nom de l'etat et la valeur
                 .html(d.key + ": " + d.value);
         })
-          .on("mouseout", function () {
+        .on("mouseout", function () {
             // on cache le toolip
             tooltip.classed("hidden", true);
-          });
-        
+        });
 
-        // Ajouter l'axe des x
-        svg.append('g')
-            .attr('transform', 'translate(0,' + height + ')')
-            .call(d3.axisBottom(x));
+    // Ajouter l'axe des x
+    svg.append('g')
+        .attr('transform', 'translate(0,' + height + ')')
+        .call(d3.axisBottom(x));
 
-        // Ajouter l'axe des y
-        svg.append('g')
-            .call(d3.axisLeft(y))
-            .selectAll("text")
-            .style("display", "none");
-        // Ajouter un titre au graphique
-        svg.append('text')
-            .attr('x', width / 2)
-            .attr('y', 0 - margin.top / 2)
-            .attr('text-anchor', 'middle')
-            .style('font-size', '16px')
-            .text('Construction des pistes cyclables dans les communes de Lyon');
-
+    // Ajouter l'axe des y
+    svg.append('g')
+        .call(d3.axisLeft(y))
+        .selectAll("text")
+        .style("display", "none");
+    // Ajouter un titre au graphique
+    svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', 0 - margin.top / 2)
+        .attr('text-anchor', 'middle')
+        .style('font-size', '16px')
+        .text('Construction des pistes cyclables dans les communes de Lyon');
 });
 
 function showBarChart(mechanicalBikes, electricalBikes, stands, capacity) {
@@ -488,7 +476,6 @@ function showBarChart(mechanicalBikes, electricalBikes, stands, capacity) {
         .attr("y", function (d) { return yScale(d.value); })
         .attr("height", function (d) { return height - yScale(d.value); });
 
-
     // Ajouter des étiquettes pour chaque barre
     svg.selectAll("text.label")
         .data(data)
@@ -538,7 +525,6 @@ function showBarChart(mechanicalBikes, electricalBikes, stands, capacity) {
         .append("title")
         .text(function (d) { return d.label + " Loading: " + d.value; });
 }
-
 
 function createBarChart(value1, value2) {
     // Nettoyer le contenu existant dans la balise avec l'id "barChart"

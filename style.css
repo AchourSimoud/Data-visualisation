@@ -43,7 +43,7 @@ body {
   max-height: 100%;
 }
 
-.plots{
+.plots {
   height: 100%;
 }
 
@@ -120,23 +120,30 @@ container {
   border-radius: 8px;
   margin: 10px;
   overflow: hidden;
-};
+}
+
+;
 
 #affichage {
   margin-top: 40px;
   padding: 20px;
   background-color: #ecf0f1;
   border-radius: 8px;
-};
+}
+
+;
 
 #map {
   height: 600px;
-};
+}
+
+;
 
 
 .hidden {
   display: none;
 }
+
 div.tooltip {
   background-color: #fff;
   padding: 0.5em;
