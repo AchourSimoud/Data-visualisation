@@ -32,7 +32,7 @@ Présentation du projet et discussion avec le professeur des potentiels amélior
 **Semaine 16-23 janvier:**
 - Achour: amélioration de l’affichage des histogrammes:
           - Tentative d'implementer un scroll sur le graphe des communes
-          - Utilisation d'une tooptip sur le hover car le scroll cachait l'axe l'horizontal
+          - Utilisation d'une tooltip sur le hover car le scroll cachait l'axe l'horizontal
 - Joseph: nettoyage du code :
           - correction de bug
 - Amine: amélioration de la partie affichage des données d’une station:
