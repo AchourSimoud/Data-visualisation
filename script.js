@@ -202,7 +202,7 @@ function update() {
 var tooltip = d3
     .select("#barChart2")
     .append("div")
-    .attr("class", " tooltip");
+    .attr("class", "hidden tooltip");
 
 // Afficher le nombre de pistes par année dans la div avec l'id "plots"
 d3.csv("Data/historique_pistes.csv").then(function (historique) {

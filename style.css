@@ -122,7 +122,6 @@ container {
   overflow: hidden;
 }
 
-;
 
 #affichage {
   margin-top: 40px;
@@ -131,13 +130,10 @@ container {
   border-radius: 8px;
 }
 
-;
 
 #map {
   height: 600px;
 }
-
-;
 
 
 .hidden {
